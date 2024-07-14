@@ -67,3 +67,19 @@ gdb
 target remote | qemu-system-x86_64 -hda ./boot.bin -S -gdb stdio
 c ### aka continue
 ```
+
+
+--------------------
+```
+gdb
+add-symbol-file ./build/kernelfull.o 0x100000
+y
+break _start
+target remote | qemu-system-x86_64 -S -gdb stdio -hda ./bin/os.bin
+c
+c
+```
+
+To fix alignment issues:
+1. pad kernel.asm to be 512 bytes aka 1 sector
+1. align memory sections in linker file at 4096 bytes

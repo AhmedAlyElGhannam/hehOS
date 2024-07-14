@@ -94,26 +94,77 @@ gdt_descriptor:
     dd gdt_start ; offset
 
 [BITS 32]
-load32: 
-    ; setting segment registers
-    mov ax, DATA_SEG
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
-    mov ebp, 0x00200000
-    mov esp, ebp
+load32:
+    mov eax, 1          ; starting sector
+    mov ecx, 100        ; number of sectors
+    mov edi, 0x0100000  ; address to load
+    call ata_lba_read
+    jmp CODE_SEG:0x100000
 
-    ; enable A20 Line
-    in al, 0x92  ; read from bus
-    or al, 2     ; enable 2nd bit
-    out 0x92, al ; output to bus
+; LBA == Linear Block Address
+; the memory access implementation that will be replaced later
+ata_lba_read: 
+    mov ebx, eax    ; backup LBA
+    ; send the highest 8 bits of LBA to hard disk controller
+    shr eax, 24     
+    or eax, 0xE0    ; select master drive
+    mov dx, 0x1F6
+    out dx, al
+    ; sending highest 8 bits done
 
-    jmp $
+    ; send total sectors to read
+    mov eax, ecx
+    mov dx, 0x1F2
+    out dx, al 
+    ; sending total sectors done
 
-TIMES 510 - ($ - $$) DB 0 
-dw 0XAA55 
+    ; send more stuff to LBA
+    mov eax, ebx
+    mov dx, 0x1F3
+    out dx, al
+    ; send more stuff to LBA done
+
+    ; send more stuff to LBA (the sequel)
+    mov dx, 0x1F4
+    mov eax, ebx ; restore backup LBA
+    shr eax, 8
+    out dx, al
+    ; send more stuff to LBA (the sequel) done
+
+    ; send upper 16 bits to LBA
+    mov dx, 0x1F5
+    mov eax, ebx
+    shr eax, 16
+    out dx, al
+    ; send upper 16 bits to LBA done
+
+    mov dx, 0x1F7
+    mov al, 0x20
+    out dx, al
+
+; read all sectors in mem
+.next_sector:
+    push ecx
+
+; check if reread is required
+.try_again:
+    mov dx, 0x1F7
+    in al, dx 
+    test al, 8
+    jz .try_again
+
+    ; read 256 words at a time
+    mov ecx, 256    ; number of read operations for 'rep' command
+    mov dx, 0x1F0   ; address of input port for 'insw' operation
+    rep insw        ; repeatedly read and store it in 0x0100000
+    pop ecx
+    loop .next_sector
+
+    ret
+
+TIMES 510 - ($ - $$) DB 0 ; zero padding to make it a full sector
+
+dw 0XAA55 ; boot signature
 
 
 
