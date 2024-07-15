@@ -25,10 +25,21 @@ void terminal_writechar(char c, char colour)
         terminal_col = 0;
         return;
     }
+
+    if (c == '\t')
+    {
+        terminal_col += 3;
+        if (terminal_col >= VGA_WIDTH)
+        {
+            terminal_col = 0;
+            terminal_row += 1;
+        }
+        return;
+    }
     
     terminal_putchar(terminal_col, terminal_row, c, colour);
     terminal_col += 1;
-    
+
     if (terminal_col >= VGA_WIDTH)
     {
         terminal_col = 0;
@@ -68,15 +79,84 @@ void print(const char* str)
 {
     size_t len = strlen(str);
 
-    for (int i = 0; i < len; i++)
+    for (size_t i = 0; i < len; i++)
     {
-        terminal_writechar(str[i], 15);
+        terminal_writechar(str[i], VGA_COLOUR_WHITE);
     }
+}
+
+void print_with_colour(const char* str, char colour)
+{
+    size_t len = strlen(str);
+
+    for (size_t i = 0; i < len; i++)
+    {
+        terminal_writechar(str[i], colour);
+    }
+}
+
+void print_sussy_bakka(void)
+{
+    print("                    _______________");
+    print("\n");
+    print("                   /               \\");
+    print("\n");
+    print("                  /                 \\");
+    print("\n");
+    print("                 /     ");
+    print_with_colour("_________", VGA_COLOUR_LIGHTBLUE);
+    print("     \\");
+    print("\n");
+    print("                |");
+    print_with_colour("     /         \\     ", VGA_COLOUR_LIGHTBLUE);
+    print("\\");
+    print("\n");
+    print("               /     ");
+    print_with_colour("(           )", VGA_COLOUR_LIGHTBLUE);
+    print("    |");
+    print("\n");
+    print("               |      ");
+    print_with_colour("\\_________/", VGA_COLOUR_LIGHTBLUE);
+    print("     |");
+    print("\n");
+    print("              /                       \\");
+    print("\n");
+    print("              |                        |");
+    print("\n");
+    print("              |                        |");
+    print("\n");
+    print("             /                         |");
+    print("\n");
+    print("             |                         |");
+    print("\n");
+    print("             |                         |");
+    print("\n");
+    print("            /                          |");
+    print("\n");
+    print("            |                          |");
+    print("\n");
+    print("            |        ________          |");
+    print("\n");
+    print("      _____/        /        \\         |");
+    print("\n");
+    print("     /              |        |         |");
+    print("\n");
+    print("     |             /   _____/          |");
+    print("\n");
+    print("     \\____________/   /               _|");
+    print("\n");
+    print("                      \\            __/");
+    print("\n");
+    print("                       \\__________/");
+
+
+
+
 }
 
 void kernel_main(void)
 {
     terminal_initialize();
 
-    print("Hello world!\ntest");
+    print_sussy_bakka();
 }

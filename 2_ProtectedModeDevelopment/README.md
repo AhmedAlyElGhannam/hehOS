@@ -83,3 +83,106 @@ c
 To fix alignment issues:
 1. pad kernel.asm to be 512 bytes aka 1 sector
 1. align memory sections in linker file at 4096 bytes
+
+---------------------------------------
+
+# Text Mode
+## Features
+1. Allows programmer to write ASCII characters in video memory.
+1. Supports **16** unique colours.
+1. No need to set individual screen pixels for printing characters. **kalm**
+
+## Writing ASCII Characters to Video Memory
+1. ASCII characters are written into memory starting at address **0xB8000** for coloured displays.
+1. ASCII characters are written into memory starting at the address **0xB0000** for monochrome displays.
+1. Each ASCII character written to this memory has its pixel equivalent outputted to the monitor.
+
+## Text Mode Supported Colours
+1. 0  -> Black
+1. 1  -> Blue
+1. 2  -> Green
+1. 3  -> Cyan
+1. 4  -> Red
+1. 5  -> Purple
+1. 6  -> Brown
+1. 7  -> Gray
+1. 8  -> Dark Gray
+1. 9  -> Light Blue
+1. 10 -> Light Green
+1. 11 -> Light Cyan
+1. 12 -> Light Red
+1. 13 -> Light Purple
+1. 14 -> Yellow
+1. 15 -> White
+
+## Characters Are Printed Without Setting Individual Screen Pixels
+
+While in Text Mode, the video card will take a given ASCII value and automatically reference it in a font table to output the correct pixels for the given character---like the letter 'A' for example.
+
+### Example: Writing 'A' in Black at (0,0) & 'B' in White at (0,1)
+```
+0xB8000 = 'A'
+0xB8001 = 0x00
+0xB8002 = 'B'
+0xB8003 = 0x0F
+```
+**OR,** both bytes (char && colour) are addressed at the same time. But, beware that `i386` is little endian and thus if the value `0x650F` must be written in memory **it is passed as 0x0065.**
+
+```
+uint16_t* video_mem = (uint16_t*)(0xB8000);
+video_mem[0] = 0x0065; // 65 for 'A' && 00 for black
+```
+
+### AmogOS Logo For... Reasearch Purposes ( ͡° ͜ʖ ͡°)
+
+                    _______________
+                   /               \
+                  /                 \
+                 /     _________     \
+                |     /         \     \
+               /     (           )    |
+               |      \_________/     |
+              /                       \
+              |                        |
+              |                        |
+             /                         |
+             |                         |
+             |                         |
+            /                          |
+            |                          |
+            |        ________          |
+      _____/        /        \         |
+     /              |        |         |
+     |             /   _____/          |
+     \____________/   /               _|
+                      \            __/
+                       \__________/
+
+
+# Interrupt Descriptor Table
+It is Protected Mode's equivalent of Interrupt Vector Table.
+1. It describes how interrupts are invoked in Protected Mode.
+1. It can be mapped/defined anywhere in memory.
+1. It is inherently different from Interrupt Vector Table.
+
+## Interrupt Invokation Description in Protected Mode
+1. Similar to Interrupt Vector Table, Interrupt Descriptor Table describes how interrupts are setup in the CPU so that if someone causes an `int 5` it will invoke the code for interrupt 5 as described by the Interrupt Descriptor Table.
+1. Each entry is 64 bit, with multiple fields, including:
+    1. Offset (Offset 16-31) -> bit 46-63: the higher part of the offset to execute.
+    1. P (Present)           -> bit 47: should be set to 0 for unused interrupts.
+    1. DPL (Descriptor Privilage Level) -> bit 45-46: ring level the CPU requires to call this interrupt.
+    1. S (Storage Segment) -> bit 44: should be set to 0 for trap gates.
+    1. Type (Gate Type) -> bit 40-43: type of gate this interrupt is treated as.
+    1. 0 (Unused 0-7) -> bit 32-39: unused bits in this structure.
+    1. Selector (Selector 0-15) -> bit 16-31: the selector this interrupt is bounded to aka the kernel Code Selector.
+    1. Offset (Offset 0-15) -> bit 0-15: the lower part of the offset to execute.
+1. Interrupt Gate Types:
+    1. Task Gate (32-bit): References Task State Segment (TSS) descriptor and can assist in multi-tasking when exceptions occur.
+    1. Interrupt Gate (16-bit & 32-bit): Used for interrupts that the programmer wants to invoke in their code.
+    1. Trap Gate (16-bit & 32-bit): Like Interrupt Gates but used for exceptions. Additionally, they disable interrupts on entry and re-enable them on an `iret` instruction.
+1. Interrupts are referenced by index using the Interrupt Descriptor Array---index 0 for interrupt 0, index 1 for interrupt 1 and so on.
+1. Interrupt Descriptor Table Register (IDTR) is a 48-bit data structure that contains 2 fields:
+    1. Limit (bit 0-15): length of Interrupt Descriptor Table minus 1.
+    1. Base (bit 16-47): the address of the interrupt descriptor table.
+1. IDT is loaded by invoking the `lidt` instruction and passing a pointer ti IDTR.
+
