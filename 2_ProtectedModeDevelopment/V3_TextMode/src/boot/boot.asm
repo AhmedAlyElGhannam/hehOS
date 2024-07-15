@@ -15,7 +15,7 @@ _start:
 TIMES 33 DB 0 ;; 33 bytes as described in BIOS Parameter Block table
 
 start:
-    JMP 0X7C0:step2
+    JMP 0:step2
 
 ;; copy sector into memory
 ; AH = 02h
@@ -51,11 +51,11 @@ step2:
     
 ; load protected mode
 .load_protected:
-    CLI ; disable interrupts due to critical section
+    cli ; disable interrupts due to critical section
     lgdt[gdt_descriptor] ; load global descriptor table
-    MOV eax, cr0 ; copy content of cr0
-    OR eax, 0x1 ; set Protection Enable bit in Control Register 0
-    MOV cr0, eax ; mov updated value back to cr0
+    mov eax, cr0 ; copy content of cr0
+    or eax, 0x1 ; set Protection Enable bit in Control Register 0
+    mov cr0, eax ; mov updated value back to cr0
     jmp CODE_SEG:load32
 
 ; GDT

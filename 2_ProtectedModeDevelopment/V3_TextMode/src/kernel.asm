@@ -3,6 +3,8 @@
 section .asm  ; for linker sections 
 
 global _start ; global makes this label visible to other files
+extern kernel_main ; telling this file that there is a label/function in another file
+
 
 CODE_SEG equ 0x08
 DATA_SEG equ 0x10
@@ -22,6 +24,8 @@ _start:
     in al, 0x92  ; read from bus
     or al, 2     ; enable 2nd bit
     out 0x92, al ; output to bus
+
+    call kernel_main ; go to C code
 
     jmp $
 
