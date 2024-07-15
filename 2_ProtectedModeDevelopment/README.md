@@ -168,7 +168,7 @@ It is Protected Mode's equivalent of Interrupt Vector Table.
 ## Interrupt Invokation Description in Protected Mode
 1. Similar to Interrupt Vector Table, Interrupt Descriptor Table describes how interrupts are setup in the CPU so that if someone causes an `int 5` it will invoke the code for interrupt 5 as described by the Interrupt Descriptor Table.
 1. Each entry is 64 bit, with multiple fields, including:
-    1. Offset (Offset 16-31) -> bit 46-63: the higher part of the offset to execute.
+    1. Offset (Offset 16-31) -> bit 48-63: the higher part of the offset to execute.
     1. P (Present)           -> bit 47: should be set to 0 for unused interrupts.
     1. DPL (Descriptor Privilage Level) -> bit 45-46: ring level the CPU requires to call this interrupt.
     1. S (Storage Segment) -> bit 44: should be set to 0 for trap gates.
@@ -184,5 +184,5 @@ It is Protected Mode's equivalent of Interrupt Vector Table.
 1. Interrupt Descriptor Table Register (IDTR) is a 48-bit data structure that contains 2 fields:
     1. Limit (bit 0-15): length of Interrupt Descriptor Table minus 1.
     1. Base (bit 16-47): the address of the interrupt descriptor table.
-1. IDT is loaded by invoking the `lidt` instruction and passing a pointer ti IDTR.
+1. IDT is loaded by invoking the `lidt` instruction and passing a pointer to IDTR.
 

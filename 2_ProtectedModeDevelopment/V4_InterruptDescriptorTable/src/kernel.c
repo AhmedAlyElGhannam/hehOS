@@ -1,7 +1,5 @@
 #include "kernel.h"
-#include <stddef.h>
-#include <stdint.h>
-
+#include "idt/idt.h"
 
 uint16_t* video_mem = 0;
 uint16_t terminal_row = 0;
@@ -151,9 +149,17 @@ void print_sussy_bakka(void)
 
 }
 
+extern void problemo(void);
+
 void kernel_main(void)
 {
     terminal_initialize();
 
     print_sussy_bakka();
+
+    // initialize Interrupt Descriptor Table
+    idt_init(); 
+
+    // added div by 0 to test IDT functionality
+    // problemo();
 }
