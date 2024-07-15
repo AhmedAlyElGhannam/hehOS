@@ -186,3 +186,14 @@ It is Protected Mode's equivalent of Interrupt Vector Table.
     1. Base (bit 16-47): the address of the interrupt descriptor table.
 1. IDT is loaded by invoking the `lidt` instruction and passing a pointer to IDTR.
 
+
+# Bro_Tip
+For any assembly function, it is good practice to create a stack frame like this:
+```
+fun_name:
+    push ebp
+    mov ebp, esp
+    ;; function body
+    pop ebp
+    ret
+```
