@@ -30,5 +30,4 @@ SECTIONS
     {
         *(.asm) /*added this section for assembly to avoid memory alignment issues*/
     }
-    
 }

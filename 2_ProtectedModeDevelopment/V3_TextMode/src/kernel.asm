@@ -1,7 +1,5 @@
 [BITS 32]
 
-section .asm  ; for linker sections 
-
 global _start ; global makes this label visible to other files
 extern kernel_main ; telling this file that there is a label/function in another file
 
