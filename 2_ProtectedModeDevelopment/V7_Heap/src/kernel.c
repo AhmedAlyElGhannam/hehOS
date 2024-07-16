@@ -1,6 +1,7 @@
 #include "kernel.h"
 #include "idt/idt.h"
 #include "io/io.h"
+#include "memory/heap/kheap.h"
 
 uint16_t* video_mem = 0;
 uint16_t terminal_row = 0;
@@ -158,12 +159,27 @@ void kernel_main(void)
 
     print_sussy_bakka();
 
+    // initialize heap
+    kheap_init();
+
     // initialize Interrupt Descriptor Table
     idt_init(); 
+
 
     // added div by 0 to test IDT functionality
     // problemo();
 
     // added out operation to test i/o functionality
     // outb(0x60, 0xFF);
+
+    void* ptr = kmalloc(50);
+    void* ptr2 = kmalloc(5000);
+    void* ptr3 = kmalloc(5000);
+    kfree(ptr);
+    void* ptr4 = kmalloc(50);
+    void* ptr5 = kmalloc(50);
+    if (ptr || ptr2 || ptr3 || ptr4 || ptr5)
+    {
+
+    }
 }

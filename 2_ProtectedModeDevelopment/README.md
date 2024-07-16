@@ -159,6 +159,20 @@ video_mem[0] = 0x0065; // 65 for 'A' && 00 for black
                        \__________/
 
 
+. 　　　。　　　　•　 　ﾟ　　。 　　.
+
+　　　.　　　 　　.　　　　　。　　 。　. 　
+
+.　　 。　　　• . 　　 • 　　　　•
+
+　　ﾟ　　 Red was not An Impostor.　 ඞ。　.
+
+　　'　　　 1 Impostor remains 　 　　。
+
+　　ﾟ　　　.　　　. 　　　　.　 .
+
+
+
 # Interrupt Descriptor Table
 It is Protected Mode's equivalent of Interrupt Vector Table.
 1. It describes how interrupts are invoked in Protected Mode.
