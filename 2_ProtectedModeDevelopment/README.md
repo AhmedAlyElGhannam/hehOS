@@ -236,3 +236,86 @@ fun_name:
 ## Interrupt Acknowledgement
 Acknowledgement is fairly simple: just an `out` operation to the control port with the sent data the same value as port number.
 Ex: port 0x20 and send data value 0x20.
+
+# Heap
+What is it?
+1. A giant memory region that can be shared in a controlled manner.
+1. A programmer can ask the heap for memory and tell the heap when they are done with that memory.
+1. Heap implementations are essentially system memory management.
+
+## C Programming Language Memory Operations
+1. In C, any memory address can be pointed to regardless of the programmer's ability to access it or not.
+1. Malloc in C returns a memory address of memory that the programmer can write to---effectively becoming theirs for a period of time. This implementation of Malloc ensures that any other time the program calls `malloc`, it does not return a memory address that is unavailable.
+1. Free in C accepts the memory address that the programmer want to free and marks that memory address along with all the associated blocks as free. So, the next time `malloc` is called, the freed address and its associated blocks can be safely used.
+
+## Memory Limits For a 32-bit Kernel
+1. Whilst in Protected Mode, the processor is in a 32-bit state.
+1. In a 32-bit state, a programmer can only access 32-bit addresses: meaning that the max amount of addressable RAM is 4.29GB regardless of the amount physically installed.
+1. An array of uninitialized memory is available for addressing starting from address `0x01000000`.
+1. Note that the address `0xC0000000` is reserved: meaning that the memory available starting at the address `0x01000000` grants a maximum of 3.22GB RAM.
+
+## Motivation For Using Heap
+1. Can be pointed at an address unused by hardware that is also big enough for programmers to use.
+1. The Heap data size can be defined by a fixed size---like 100MB for example.
+1. As long as there exists 100MB of usable memory available, the Heap will work fine.
+1. The Heap will be responsible for storing information in the kernel.
+1. The chosen Heap implementation will be responsible for managing the big chungus of memory we call the Heap.
+
+## Simplest Possible Heap Implementation
+1. Start with a start address & call it a *current address*, point it to somewhere free---i.e.; `0x01000000`.
+1. Any call to `malloc` gets the current address, stores it in a temporary variable called `tmp`.
+1. Now, the current address is incremented by the size provided to `malloc`.
+1. `tmp` is returned.
+1. Current address now contains the next address for `malloc` to return when `malloc` is called again.
+### Benefits 
+Ease of Implementation.
+### Negatives
+Memory can never be released; which may eventually lead to the system being unusable and requiring a reset.
+**leads to mem leaks and eventually a system crash**
+
+## Chosen Heap Implementation
+1. Consists of a giant table which describes a giant piece of free memory in the system. This table will describe which memory is taken, which memory is free and so on. **It shall be called the *Entry Table***
+1. Will have a pointer to a giant piece of free memory, this will be the actual heap data itself that users of `malloc` can use. **It shall be called *Data Pool*.** If the Heap can allocate 100MB of RAM then the *Data Pool* will be 100MB in size.
+1. This Heap implementation will be **block-based,** each address returned from `malloc` will be aligned to 4096 and will at least be 4096 in size.
+1. If the programmer requests to have "50" bytes, 4096 bytes of memory will be returned to them.
+
+### Entry Table
+1. Composed of an array of 1 byte values that represent an entry in the Heap Data Pool.
+1. Array size is calculated by taking the Heap Data Pool size and dividing it by the block size (4096 in this implementation). Ex: For a 100MB Heap -> 100MB / 4096 = 25600 bytes in Entry Table.
+1. Entry zero will represent address 0x01000000, entry one will represent address 0x01001000, entry two will represent address 0x01002000 and so on. (0x1000 == 4096 bytes).
+
+### Entry Structure
+Each entry in the table is 8-bit long, describes 4096 bytes of data in the Heap Data Pool by the following fields:
+1. bit 0-3 -> ET_0, ET_1, ET_2, ET_3: these 4 bits represent the **entry type**.
+1. bit 4-5 -> no used and left as 0s.
+1. bit 6 -> IS_FIRST: a flag that is set if this is the first entry in our allocation.
+1. bit 7 -> HAS_N: a flag that is set if the entry to the right is a part of our allocation.
+1. Entry Types:
+    1. `HEAP_BLOCK_TABLE_ENTRY_TAKEN` -> entry is taken and the address cannot be used.
+    1. `HEAP_BLOCK_TABLE_ENTRY_FREE` -> entry is free and may be used.
+
+### Data Pool
+Simply, it is a **raw flat array of thousands or millions of bytes** in the Heap that can give memory upon requesting it. 
+
+### Malloc Algorithm For Chosen Heap Implementation
+1. Take the passed size from `malloc`.
+1. Calculate how many blocks are needed to allocate this size.
+1. If the user asks for 5000 bytes, allocate 2 blocks aka 8192 bytes because this implementation does not work for block size less than 4096 bytes.
+1. Check the Entry Table for the first entry that has a type `HEAP_BLOCK_TABLE_ENTRY_FREE`. 
+1. Since two blocks are required, make sure the **next entry is also free**. Otherwise, i.e.; the next entry is used, **discard the first block found** and look further in Entry Table until 2 consecutive free blocks are found.
+1. Once found, mark deez blocks as taken.
+1. Return the **absolute address** that the starting block represents: (heap_data_pool_start_address + (block_number * block_size)).
+
+### Free Algorithm For Chosen Heap Implementation
+1. Calculate the block number based on the address provided by the programmer to `free`.
+1. Go through the Entry Table, starting at the block number calculated in the previous step; set each entry to `HEAP_BLOCK_TABLE_ENTRY_FREE` until the last block of the allocation is reached.
+1. The number of blocks to free is known **because the current block getting freed will not have the `HAS_N` bit set in its entry byte.**
+
+### Benefits of Chosen Heap Implementation
+1. Fast to allocate blocks of memory since linked lists are not used: array elements can be simply indexed.
+1. Fast to free blocks of memory due to the use of arrays.
+
+### Negatives of Chosen Heap Implementation
+1. Memory allocation is in memory blocks; meaning that misaligned sizes requested from the Heap will result in wasted lost bytes. *Using block size heaps is fast tho*
+1. Memory fragmentation is possible: In order for multiple blocks to be allocated, they **must** be next to each other. Therefore, blocks in-between that are free are basically wasted. This can be solved by **Paging.**
+
