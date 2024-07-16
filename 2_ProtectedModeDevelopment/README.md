@@ -197,3 +197,42 @@ fun_name:
     pop ebp
     ret
 ```
+
+# Programmable Interrupt Controller
+## Characteristics
+1. Allows hardware to interrupt the processor's state.
+1. `programmable`
+1. Requires interrupt acknowledgement.
+
+## Ability for Hardware to Interrupt CPU
+### Standard ISA IRQ's:
+    1. 0  -> Timer Interrupt (useful for multi-tasking)
+    1. 1  -> Keyboard Interrupt
+    1. 2  -> Cascade Interrupt (used internally by 2 PIC's -- never used)
+    1. 3  -> COM2 (if enabled)
+    1. 4  -> COM1 (if enabled) 
+    1. 5  -> LPT2 (if enabled) (Line Print Terminal---parallel port used for printers)
+    1. 6  -> Floppy Disk
+    1. 7  -> LPT1 (if enabled)
+    1. 8  -> CMOS Real-Time Clock (if enabled)
+    1. 9  -> Free for Peripherals/Legacy SCSI (Small Computer System Interface)/NIC (Network Interface Card)
+    1. 10 -> Free for Peripherals/Legacy SCSI (Small Computer System Interface)/NIC (Network Interface Card)
+    1. 11 -> Free for Peripherals/Legacy SCSI (Small Computer System Interface)/NIC (Network Interface Card)
+    1. 12 -> PS2 Mouse (old green-ish circular mouse port)
+    1. 13 -> FPU/Co-Processor/Inter-Processor
+    1. 14 -> Primary ATA Hard Disk
+    1. 15 -> Secondary ATA Hard Disk
+
+### Understanding IRQ's
+    1. IRQ's are **mapped** to a starting interrupt (say 0x20 for example).
+    1. IRQ 0 would then be interrupt 0x20, IRQ 1 would be interrupt 0x21 and so on.
+    1. By default, some IRQ's are mapped to interrupts 8-15. **This is a problem:** these interrupts are reserved in Protected Mode for Exceptions. So, it is required to remap PIC.
+
+## Programmable Interrupt Controllers Configuration
+1. The system has two PIC's: one for **slave ports** and the other for **master ports**.
+1. The master handles IRQ 0-7. (uses port 0x20 && 0x21 for control ports)
+1. The slave handles IRQ 8-15. (uses port 0xA0 && 0xA1 for control ports)
+
+## Interrupt Acknowledgement
+Acknowledgement is fairly simple: just an `out` operation to the control port with the sent data the same value as port number.
+Ex: port 0x20 and send data value 0x20.

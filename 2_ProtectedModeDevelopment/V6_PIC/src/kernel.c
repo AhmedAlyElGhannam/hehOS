@@ -147,7 +147,7 @@ void print_sussy_bakka(void)
     print("                      \\            __/");
     print("\n");
     print("                       \\__________/");
-
+    print("\n");
 }
 
 extern void problemo(void);
@@ -165,5 +165,5 @@ void kernel_main(void)
     // problemo();
 
     // added out operation to test i/o functionality
-    outb(0x60, 0xFF);
+    // outb(0x60, 0xFF);
 }
