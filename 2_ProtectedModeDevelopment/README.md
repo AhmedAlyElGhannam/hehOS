@@ -333,3 +333,75 @@ Simply, it is a **raw flat array of thousands or millions of bytes** in the Heap
 1. Memory allocation is in memory blocks; meaning that misaligned sizes requested from the Heap will result in wasted lost bytes. *Using block size heaps is fast tho*
 1. Memory fragmentation is possible: In order for multiple blocks to be allocated, they **must** be next to each other. Therefore, blocks in-between that are free are basically wasted. This can be solved by **Paging.**
 
+
+# Paging
+## Features
+1. Grants the ability to **remap** memory addresses.
+1. Provides the **illusion** of having the maximum amount of RAM installed.
+1. Can be used to **hide** memory from other processes.
+
+## Remapping Memory
+1. Ex: memory address `0x100000` could point to address `0x200000`.
+1. Paging works in blocks of size 4096 byte by default. Deez blocks are called *pages*.
+1. Upon enabling paging, the Memory Management Unit (MMU) will look at the allocated page tables to resolve virtual addresses into physical addresses.
+1. Paging gives the impression that memory exists even when it does not.
+
+## Virtual Addresses vs. Physical Addresses
+1. Virtual addresses are addresses that are not pointing to the address in memory that their value says they are. Virtual address `0x100000` might point to physical address `0x200000` for example.
+1. Physical addresses are absolute addresses in memory whose value points to the same address in memory. For example, if physical address `0x100000` points to address `0x100000` then this is a physical address.
+1. Essentially, virtual addresses and physical addresses are just terms used to explain how a piece of memory is being accessed.
+
+## Paging Structure Overview
+1. Page Directory Table -> contains 1024 page directories; **each** points to a page table.
+1. Page Table -> has 1024 page entries; each maps to a physical address: covering 4096 bytes of memory.
+1. Each 4096 byte block of memory is called a page.
+1. PDT_entries * PT_entry * page_size = 1024 * 1024 * 4096 = 4GB of addressable memory.
+
+### Page Directory Structure
+1. Holds a pointer to a page table.
+1. Holds attributes:
+    1. bit 0: P (Present)-> This bit is set if the page exists in real memory. If this page is not actually available, the kernel developer should set this bit to zero. If someone accesses this page, a **page fault** will occur and it must be resolved.
+    1. bit 1: R (Read/Write)-> This bit is set if the page is readable and writable. If it is not set, the page is only readable. *Note that the `WP` bit in the `CR0` register can allow writing in all cases for supervisor.*
+    1. bit 2: U (User Supervisor)-> If set, the page can be accessed by all privilage ring levels. If it is not set, only supervisor ring levels can access this page.
+    1. bit 3: W (Write-back/Write-through)-> If set, write-though caching is enabled. If it is not set, write-back caching is enabled instead.
+    1. bit 4: D (Cache Disable)-> Set to 1 to disable page caching.
+    1. bit 5: A (Page Accessed)-> Set to 1 by CPU if this page is accessed.
+    1. bit 6: Left as 0---not used.
+    1. bit 7: S (Page Size)-> Set to 0 for 4KB pages and to 1 for 4MB pages.
+    1. bit 8: G -> Set to prevent Translation Look-aside Buffer (TLB) from updating the address in its cache if the `CR3` register is reset.
+    1. bits 9-11: Available.
+    1. bits 12-31: Physical 4KB-aligned Address.
+
+### Page Table Entry Structure
+    1. bit 0: P (Present)-> This bit is set if the page exists in real memory. If this page is not actually available, the kernel developer should set this bit to zero. If someone accesses this page, a **page fault** will occur and it must be resolved.
+    1. bit 1: R (Read/Write)-> This bit is set if the page is readable and writable. If it is not set, the page is only readable. *Note that the `WP` bit in the `CR0` register can allow writing in all cases for supervisor.*
+    1. bit 2: U (User Supervisor)-> If set, the page can be accessed by all privilage ring levels. If it is not set, only supervisor ring levels can access this page.
+    1. bit 3: W (Write-back/Write-through)-> If set, write-though caching is enabled. If it is not set, write-back caching is enabled instead.
+    1. bit 4: C (Cache Disable)-> Set to 1 to disable page caching.
+    1. bit 5: A (Page Accessed)-> Set to 1 by CPU if this page is accessed.
+    1. bit 6: D -> Indicates that the page has been written to.
+    1. bit 7: Left as 0---not used.
+    1. bit 8: G -> Set to prevent Translation Look-aside Buffer (TLB) from updating the address in its cache if the `CR3` register is reset.
+    1. bits 9-11: Available.
+    1. bits 12-31: Physical 4KB-aligned Address.
+
+ ## Page Fault Exception
+ The CPU will call the page fault interrupt `0x14` when a problem related to paging arises, such as but not limited to:
+ 1. If a page in memory that does not have its `P` bit set is accessed.
+ 1. If a page that is for supervisor is accessed by a non-supervisor.
+ 1. If a page is written to and it is read-only and the writer is not a supervisor.
+
+ ## Hiding Memory From Processes
+ 1. If each process is given its own Page Directory Table, the memory belonging to the process can be mapped however the developer wants. It is also possible to make the process **only** able to see its memory.
+ 1. Hiding memory is achieved by switching the page directories when moving between processes.
+ 1. All processes **can access the same virtual memory addresses** but they **will point to different physical addresses**.
+
+## Illusion of More Memory
+1. It is possible to pretend that the maximum amount of memory is available even if it is not.
+1. This is achieved by creating page tables that are not present Once a process accesses this non-present address, a page fault will occur. The page can then loaded back into memory without the process knowing a thing.
+1. A 100MB system can act as if it has access to the full 4Gb on a 32-bit architecture.
+
+## Benefits of Paging
+1. Each process can access the same virtual memory addresses: never writing over each other.
+1. Security is an added benefit as physical memory can be mapped out of a process's memory range.
+1. Can be used to prevent overwriting sensitive data such as program code.
