@@ -405,3 +405,29 @@ Simply, it is a **raw flat array of thousands or millions of bytes** in the Heap
 1. Each process can access the same virtual memory addresses: never writing over each other.
 1. Security is an added benefit as physical memory can be mapped out of a process's memory range.
 1. Can be used to prevent overwriting sensitive data such as program code.
+
+# Reading From Hard Disk
+## PCI IDE Controller
+1. IDE refers to the electrical specification of cables which connects ATA drives to another device.
+1. IDE allows up to 4 drives to be connected:
+    1. ATA (Serial): Used for modern hard drives.
+    1. ATA (Parallel): Used for old hard drives.
+    1. ATAPI (Serial): Used for modern optical drives.
+    1. ATAPI (Paralled): Used for old optical drives.
+1. Kernel programmers do not have to care it the drive is serial or parallel.
+
+## Possible Drive Types
+1. Primary Master. (Will be the main focus)
+1. Primary Slave.
+1. Secondary Master.
+1. Secondary Slave.
+
+## ATA Read Algorithm
+1. Select master drive and pass **part of the Logical Block Address (LBA)**.
+1. Send the total number of sectors to be read.
+1. Send **more rest of LBA**.
+1. Send read command `0x20` to the required port.
+1. Poll until read operation is ready. Interrupts can be used here instead.
+1. Read two bytes at a time into the buffer from the ATA controller.
+
+## 
