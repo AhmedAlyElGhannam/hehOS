@@ -133,7 +133,7 @@ uint16_t* video_mem = (uint16_t*)(0xB8000);
 video_mem[0] = 0x0065; // 65 for 'A' && 00 for black
 ```
 
-### AmogOS Logo For... Reasearch Purposes ( ͡° ͜ʖ ͡°)
+### AmogOS Logo For... Research Purposes ( ͡° ͜ʖ ͡°)
 
                     _______________
                    /               \
