@@ -49,6 +49,6 @@ void idt_init(void)
         idt_set(i, no_interrupt);
     }
 
-    idt_set(0, idt_zero);
-    idt_set(PIC_TIMER_INT, int21h);
+    //idt_set(0, idt_zero);
+    //idt_set(PIC_TIMER_INT, int21h);
 }
