@@ -5,5 +5,6 @@
 #define EIO              1 // io error - linux syntax
 #define EINVARG          2 // invalid argument error
 #define ENOMEM           3 // no memory erros
+#define EBADPATH         4
 
 #endif

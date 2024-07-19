@@ -24,6 +24,7 @@
 #define VGA_COLOUR_YELLOW       14
 #define VGA_COLOUR_WHITE        15
 
+#define HEHOS_MAX_PATH 108
 
 void kernel_main(void);
 void print(const char* str);

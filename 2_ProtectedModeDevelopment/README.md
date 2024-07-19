@@ -430,4 +430,28 @@ Simply, it is a **raw flat array of thousands or millions of bytes** in the Heap
 1. Poll until read operation is ready. Interrupts can be used here instead.
 1. Read two bytes at a time into the buffer from the ATA controller.
 
-## 
+# Filesystem
+## What is a Filesystem?
+1. A filesystem is a structure that describes how information is laid on a disk **since disks are not aware of the existence of files; only data.**
+1. As a result of knowing the filesystem structure, the OS knows how to read files from the disk.
+
+## Disks -- Revisited
+1. Hard disks can be thought of as just a giant array of information split into sectors.
+1. Each sector can be read into memory and is given an LBA number.
+1. Files *do not exist* on the disk.
+1. Disks have no concept of files.
+
+## Filesystem Structure
+1. Contains raw data for files. (the disk is not aware of this)
+1. Contains the filesystem structure **header** which can explain things such as how many files are on the disk, where the root directory is located and so on.
+1. The way files are laid out on disk---i.e.; **format**---is different depending on the filesystem being used: FAT16, FAT32, NTFS, and more.
+1. Without filesystems, the user would be forced to read and write data through the use of sector numbers, structure would not exist, and corruption would be likely.
+
+## FAT16 -- Components
+1. Stands for File Allocation Table 16-bit.
+1. The **first sector** in this filesystem format is the boot sector on a disk. Fields that describe the file system also exist in the first sector; like how many reserved sectors follow this sector.
+1. The **reserved sectors** are **sectors ignored by the filesystem**. There is a field in the boot sector that specifies **how many reserved sectors there are.** Note that **the OS must ignore deez; it is not an automatic operation done by the disk: the disk has no idea and it has to be programmed into the OS.**
+1. The **first file allocation table** contains values that **represent which clusters on the disk are taken and which are free.** A cluster is just a *certain number of sectors joined together to represent one cluster.*
+1. The **second file allocation table** is **optional** and depends on the FAT16 header in the boot sector.
+1. The **root directory** explains what files/directories are in the root directory in the filesystem. Each entry has a relative name that represents the file or directory name; attributes such as read-only, the address of the first cluster representing the data on the disk, and more.
+1. The **data region** is where all the data is located.
