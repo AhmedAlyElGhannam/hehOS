@@ -455,3 +455,35 @@ Simply, it is a **raw flat array of thousands or millions of bytes** in the Heap
 1. The **second file allocation table** is **optional** and depends on the FAT16 header in the boot sector.
 1. The **root directory** explains what files/directories are in the root directory in the filesystem. Each entry has a relative name that represents the file or directory name; attributes such as read-only, the address of the first cluster representing the data on the disk, and more.
 1. The **data region** is where all the data is located.
+
+# File Allocation Table (FAT)
+
+## What is FAT?
+1. A filesystem developed my Microsoft.
+1. It consists of a series of **clusters** that holds data and a **table** that determines the state of a cluster.
+1. The **boot sector** stores information about the filesystem.
+
+## FAT16 Filesystem
+1. Uses clusters to represent **data** and **subdirectories**.
+1. Each cluster uses a **fixed amount of sectors** which is specified in the **boot sector**.
+1. Every file in FAT16 needs to use **at least one cluster** for its data: this translates into a lot storage is wasted for small files.
+1. FAT16 **cannot store files larger than 2GB** *without* larger file support. *With* large file support the maximum is **4GB**.
+
+## FAT16 Disk Layout (Assuming Sector Size of 512 Bytes)
+1. Boot Sector (aka bootloader with **33 bytes that contain info about the filesystem**) -> 512 bytes.
+1. Reserved Sectors (sectors that should not be included in the file system *including the boot sector* -- **has to be at least 1**) -> fat_header.reserved_sectors * 512.
+1. FAT1 (stores info that explains which part of the disk is free, inaccessible, in-use; also allows chaining clusters TOGETHAAAA) -> fat_headers.sectors_per_fat * 512.
+1. FAT2 (optional -- duplicate of FAT1 and used as backup) -> fat_headers.sectors_per_fat * 512.
+1. Root Directory -> fat_header.root_dir.entries * sizeof(struct fat_directory_item) **rounded to next sector if needed.**
+1. Data Clusters.
+
+## FAT16 File Allocation Table Details
+1. Each entry in the table is 2 bytes long and represents a cluster in the data clusters region that is available or taken.
+1. Clusters can chain together, for example a file larger than one cluster will use two clusters. The value that represents the first cluster in the file allocation table will contain the value of the next cluster. The final cluster will contain a value of `0xFFFF` signifying that there are no more clusters.
+1. The cluster size is represented in the boot sector.
+
+## FAT16 Root Directory
+1. Filesystems have directories/folders. FAT16 is no different.
+1. FAT16 has what is known as a root directory: the top-most directory in the system.
+1. Directories contain directory entries of a fixed size.
+ 

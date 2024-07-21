@@ -4,7 +4,7 @@
 #include "../config.h"
 #include "../status.h"
 
-#define RECURSION_MAX_CALL_PROTECC  10
+#define RECURSION_MAX_CALL_PROTECC  25
 static int recursion_call_count = 0;
 
 struct disk_stream* diskstreamer_new(int disk_id)
