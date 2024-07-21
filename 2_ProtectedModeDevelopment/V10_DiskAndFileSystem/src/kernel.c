@@ -7,6 +7,7 @@
 #include "string/string.h"
 #include "fs/pparser.h"
 #include "disk/dstreamer.h"
+#include "fs/file.h"
 
 
 uint16_t* video_mem = 0;
@@ -164,8 +165,13 @@ void kernel_main(void)
     // initialize heap
     kheap_init();
 
+    // initialize filesystems
+    fs_init();
+
     // paging setup
     kernel_chunk = paging_new_4gb(PAGING_IS_WRITABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
+    
+    // switch to kernel paging chunk
     paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
 
     // enabling paging

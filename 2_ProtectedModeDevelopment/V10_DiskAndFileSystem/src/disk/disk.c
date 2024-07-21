@@ -45,6 +45,8 @@ void disk_search_and_init(void)
     memset(&disk, 0, sizeof(disk));
     disk.type = HEHOS_DISK_TYPE_REAL;
     disk.sector_size = HEHOS_SECTOR_SIZE;
+    disk.id = 0;
+    disk.filesystem = fs_resolve(&disk);
 }
 
 // returns disk corresponding to index --- only one disk indexed 0

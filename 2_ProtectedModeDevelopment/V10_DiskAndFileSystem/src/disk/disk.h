@@ -1,6 +1,8 @@
 #ifndef DISK_H
 #define DISK_H
 
+#include "../fs/file.h"
+
 typedef unsigned int HEHOS_DISK_TYPE;
 
 // this represents a real physical hard disk
@@ -10,6 +12,13 @@ struct disk
 {
     HEHOS_DISK_TYPE type;
     int sector_size;
+
+    int id;
+
+    struct filesystem* filesystem;
+
+    // private data for filesystem
+    void* fs_private;
 };
 
 void disk_search_and_init(void);

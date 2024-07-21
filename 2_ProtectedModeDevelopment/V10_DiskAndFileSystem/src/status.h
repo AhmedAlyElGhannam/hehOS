@@ -7,5 +7,6 @@
 #define ENOMEM           3 // no memory erros
 #define EBADPATH         4 // invalid/bad path
 #define ERECMAX          5 // max recursion calls
+#define EFSNOTUS         6
 
 #endif

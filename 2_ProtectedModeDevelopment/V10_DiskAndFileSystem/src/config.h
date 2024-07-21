@@ -15,5 +15,7 @@
 
 #define HEHOS_SECTOR_SIZE       512
 
+#define hehOS_MAX_FILESYSTEMS       12
+#define hehOS_MAX_FILE_DESCRIPTORS  512 // max no of opened files
 
 #endif
