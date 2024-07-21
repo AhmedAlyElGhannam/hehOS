@@ -487,3 +487,18 @@ Simply, it is a **raw flat array of thousands or millions of bytes** in the Heap
 1. FAT16 has what is known as a root directory: the top-most directory in the system.
 1. Directories contain directory entries of a fixed size.
  
+# Virtual File System (VFS)
+
+## What is VFS Layer?
+1. Allows a kernel to support an **infinite** amount of filesystems.
+1. Allows developers to **abstract out low-level filesystem code**.
+1. Allows filesystem functionality to be **loaded or unloaded** to the kernel **at any time**.
+
+## Unlimited Filesystems
+1. Filesystem drivers can be loaded or unloaded on demand.
+1. The programming interface to the filesystem remains the same for all filesystems.
+
+## What Happens When a Disk Gets Inserted?
+1. Poll each filesystem and ask if the disk holds a filesystem it can manage. (This is called **resolving the filesystem**)
+1. When a filesystem that can be used with the disk is found, the disk binds itself to its implementation.
+
