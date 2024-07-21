@@ -7,34 +7,35 @@ BITS 16
 CODE_SEG equ gdt_code - gdt_start
 DATA_SEG equ gdt_data - gdt_start
 
-;; Add BIOS Parameter Block to prevent BIOS from corrupting this code
-_start:
-    JMP SHORT start
-    NOP
+;; FAT16 shenanigans
+JMP SHORT start
+NOP
 
-TIMES 33 DB 0 ;; 33 bytes as described in BIOS Parameter Block table
+; FAT16 header
+OEMIdentifier           db 'hehOS   ' ; 8 bytes PADDED WITH SPACES!
+BytesPerSector          dw 0x200 ; 512 bytes per sector
+SectorsPerCluster       db 0x80 ; 128 sectors per cluster
+ReservedSectors         dw 200 ; reserved for kernel space
+FATCopies               db 0x02 ; original + backup copy
+RootDirEntries          dw 0x40
+NumSectors              dw 0x00 ; not used
+MediaType               db 0xF8
+SectorsPerFAT           dw 0x100
+SectorPerTrack          dw 0x20
+NumberOfHeads           dw 0x40
+HiddenSectors           dd 0x00
+SectorsBig              dd 0x773594
+
+; Extended BPB (DOS 4.0)
+DriveNumber             db 0x80
+WinNTBit                db 0x00
+Signature               db 0x29
+VolumeID                dd 0xD105
+VolumeIDString          db 'hehOS BOOT '    
+SystemIDString          db 'FAT16   '
 
 start:
     JMP 0:step2
-
-;; copy sector into memory
-; AH = 02h
-; AL = number of sectors to read (must be nonzero)
-; CH = low eight bits of cylinder number
-; CL = sector number 1-63 (bits 0-5)
-; high two bits of cylinder (bits 6-7, hard disk only)
-; DH = head number
-; DL = drive number (bit 7 set for hard disk)
-; ES:BX -> data buffer
-
-; Return:
-; CF set on error
-; if AH = 11h (corrected ECC error), AL = burst length
-; CF clear if successful
-; AH = status (see #00234)
-; AL = number of sectors transferred (only valid if CF set for some
-; BIOSes)
-
 
 step2:
     CLI ; clear interrupts
