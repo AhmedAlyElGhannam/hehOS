@@ -24,10 +24,12 @@
 #define VGA_COLOUR_YELLOW       14
 #define VGA_COLOUR_WHITE        15
 
-#define HEHOS_MAX_PATH 108
-
 void kernel_main(void);
 void print(const char* str);
 void panic(const char* msg);
+
+#define ERROR(value)    (void*)(value)
+#define ERROR_I(value)  (int)(value)
+#define ISERR(value)    ((int)value < 0)
 
 #endif

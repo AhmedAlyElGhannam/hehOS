@@ -4,7 +4,7 @@
 #include "../config.h"
 #include "../status.h"
 
-#define RECURSION_MAX_CALL_PROTECC  25
+//#define RECURSION_MAX_CALL_PROTECC  125
 static int recursion_call_count = 0;
 
 struct disk_stream* diskstreamer_new(int disk_id)
@@ -31,10 +31,10 @@ int diskstreamer_seek(struct disk_stream* stream, int pos)
 int diskstreamer_read(struct disk_stream* stream, void* out, int total)
 {
     // protection for max recursion calls
-    if (recursion_call_count == RECURSION_MAX_CALL_PROTECC)
-    {
-        return -ERECMAX;
-    }
+    // if (recursion_call_count == RECURSION_MAX_CALL_PROTECC)
+    // {
+    //     return -ERECMAX;
+    // }
 
     int sector = stream->pos / HEHOS_SECTOR_SIZE; // calculate sector
     int offset = stream->pos % HEHOS_SECTOR_SIZE; // calculate offset

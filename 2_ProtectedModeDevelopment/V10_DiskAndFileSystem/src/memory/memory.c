@@ -30,3 +30,16 @@ int memcmp(void* s1, void* s2, int count)
 
     return 0;
 }
+
+void* memcpy(void* src, void* dest, int len)
+{
+    char* src_tmp = (char*) src;
+    char* dest_tmp = (char*) dest;
+
+    while (len--)
+    {
+        *dest_tmp++ = *src_tmp++;
+    }
+
+    return dest;
+}

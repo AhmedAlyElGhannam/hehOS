@@ -160,7 +160,7 @@ void kernel_main(void)
 {
     terminal_initialize();
 
-    print_sussy_bakka();
+    //print_sussy_bakka();
 
     // initialize heap
     kheap_init();
@@ -186,11 +186,13 @@ void kernel_main(void)
     // enable interrupts
     enable_interrupts();
 
-    // testing disk streamer
-    struct disk_stream* stream = diskstreamer_new(0);
-    diskstreamer_seek(stream, 0x201);
-    unsigned char c = 0;
-    diskstreamer_read(stream, &c, 1);
+    // testing fopen
+    int fd = fopen("0:/OpenMeUwU.txt", "r");
+    if (fd)
+    {
+        print("OpenMeUwU.txt Has Been Opened!\n");
+    }
+    
     while(1);
     
 }
