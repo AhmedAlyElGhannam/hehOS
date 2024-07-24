@@ -502,3 +502,53 @@ Simply, it is a **raw flat array of thousands or millions of bytes** in the Heap
 1. Poll each filesystem and ask if the disk holds a filesystem it can manage. (This is called **resolving the filesystem**)
 1. When a filesystem that can be used with the disk is found, the disk binds itself to its implementation.
 
+# Understanding User Land
+## User Land
+1. Describes a limited processor state.
+1. Processes generally run in user land.
+1. User land is safe because if something goes wrong the kernel is able to intervene.
+1. User land is when the processor is in ring 3.
+1. User land is not a special place where processes run; it is simply a term to describe the processor when it is in a privilaged limited state.
+
+## Kernel Land
+1. Kernel land is when the process is in its maximum privileged state.
+1. Whilst in kernel land, any area in memory can be changed.
+1. And CPU instruction can be run.
+1. There is also a high risk of damage to the system if things go wrong.
+1. Kernel land is when the processor is in a privileged protection ring aka ring 0.
+
+## User Land Restrictions
+1. Access to certain locations in memory can be restricted for user land processes. **(supervisor bit in page teble entry can ensure this)**
+1. Access to certain CPU instructions are restricted from user land.
+1. Using paging the kernel can ensure all processes cannot access each other's memory. User land code is unable to override this because it is running in an unprivileged state. The instructions for switching pages are disabled.
+1. Attempting to run privileged instructions whilst in user land will cause a protection fault. The protection fault exception interrupt handler will then be responsible for solving the problem.
+
+## Entering User Land
+1. Setup **user code** and **data segments.**
+1. Setup a Task Switch Segment (TSS).
+1. Pretend the CPU is returning from an interrupt: **pushing flags and data to stack** before executing an `iret` instruction to change the processor's privilege state.
+
+### Setting up The User Segment Registers
+    1. GDT has to be set up using C code (in the form of a struct) instead of assembly like in the bootloader.
+    1. This struct will then be passed to an assembly function that will populate the GDT.
+
+### Task Switch Segment
+1. TSS is a way for the processor to get back to kernel land when there is a system interrupt.
+1. TSS explains things such as **where the kernel stack is located.**
+1. Upon receiving an interrupt when the processor is in user land, the processor will switch to the kernel code and data segments. It will then restore the stack pointer located in TSS before invoking the kernel interrupt handler.
+1. TSS is a struct that contains the value of **all** major cpu registers such as ESP0 and SS0: which represent kernel stack pointer and kernel stack segment respectively.
+
+### Pretending The CPU is Returning From an Interrupt
+1. Set the segment registers to the user data segment created previously---**most likely to be 0x23**. Registers such as `DS, ES, FS, GS` should be changed; but the stack segment **should not.**
+1. Save the **stack pointer** in `EAX` register since the stack is about to be modified.
+1. Push user data to the stack `0x23`.
+1. Push the **stack pointer** saved in `EAX` earlier.
+1. Push **current flags** to the stack but not before **bitwise-OR-ing the bit that re-enables interrupts**. This is important since interrupts are cleared at this moment in time and they must re-enabled to execute `iret` successfully.
+1. Push user code segment---which should be `0x1B`.
+1. Push the **address of the function** that needs to be run in user land.
+1. Call an `iret`: forcing the processor into a user land unprivileged state.
+
+### Getting Back to User Land When in a Kernel Interrupt
+1. When an interrupt is invoked while the cpu is in user land, the cpu will **push the same registers that were pushed to get into user land in the first place.** This way, getting back to user land is very easy: upon invoking `iret` at the end of the kernel interrupt routine, the kernel will go back to the user program just after the user program's interrupt instruction.
+1. In a **multi-tasking system**, user land registers will need to be salvaged when entering kernel land; which is important so that switching to the next process task may be possible. When switching back to the old task, **just swap the old registers of the task back to the reak CPU registers again** then **drop the cpu back into user land**: the task will continue executing as if nothing happened. **(can be done with timer interrupts)**
+
