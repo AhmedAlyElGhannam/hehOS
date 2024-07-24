@@ -9,6 +9,10 @@
 #include "disk/disk.h"
 #include "fs/pparser.h"
 #include "disk/streamer.h"
+#include "gdt/gdt.h"
+#include "config.h"
+#include "memory/memory.h"
+#include "task/tss.h"
 
 uint16_t* video_mem = 0;
 uint16_t terminal_row = 0;
@@ -155,10 +159,27 @@ extern void problemo(void);
 
 static struct paging_4gb_chunk* kernel_chunk = 0;
 
+struct tss tss;
+
+struct gdt gdt_real[HEHOS_TOTAL_GDT_SEGMENTS];
+struct gdt_structured gdt_structured[HEHOS_TOTAL_GDT_SEGMENTS] = {
+    {.base = 0x00, .limit = 0x00, .type = 0x00},                       // null segment
+    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0x9A},                 // kernel code segment
+    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0x92},                 // kernel data segment 
+    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0xF8},                 // user code segment 
+    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0xF2},                 // user data segment
+    {.base = (uint32_t)&tss, .limit = sizeof(tss), .type = 0xE9}       // tss segment 
+};
+
 void kernel_main(void)
 {
     // clear terminal
     terminal_initialize();
+
+    memset(gdt_real, 0x00, sizeof(gdt_real));
+    gdt_structured_to_gdt(gdt_real, gdt_structured, HEHOS_TOTAL_GDT_SEGMENTS);
+    // load gdt
+    gdt_load(gdt_real, sizeof(gdt_real));
 
     //print_sussy_bakka();
 
@@ -173,6 +194,14 @@ void kernel_main(void)
 
     // initialize the interrupt descriptor table
     idt_init();
+
+    // setting up Task Switching Segment
+    memset(&tss, 0x00, sizeof(tss));
+    tss.esp0 = 0x600000; // where kernel stack is located
+    tss.ss0 = KERNEL_DATA_SELECTOR;
+
+    // load Task Switching Segment
+    tss_load(0x28); // offset in gdt after conversion
 
     // paging setup
     kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
@@ -193,7 +222,7 @@ void kernel_main(void)
         fstat(fd, &s);
         fclose(fd);
 
-        print("testing\n");
+        print_sussy_bakka();
     }
     while(1);
 }
