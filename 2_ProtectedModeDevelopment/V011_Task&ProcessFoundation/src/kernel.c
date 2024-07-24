@@ -4,6 +4,7 @@
 #include "idt/idt.h"
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
+#include "status.h"
 #include "string/string.h"
 #include "fs/file.h"
 #include "disk/disk.h"
@@ -13,6 +14,9 @@
 #include "config.h"
 #include "memory/memory.h"
 #include "task/tss.h"
+#include "task/task.h"
+#include "task/process.h"
+#include "status.h"
 
 uint16_t* video_mem = 0;
 uint16_t terminal_row = 0;
@@ -207,22 +211,23 @@ void kernel_main(void)
     kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
     
     // switch to kernel paging chunk
-    paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
+    paging_switch(kernel_chunk);
 
     // enable paging
     enable_paging();
     
     // enable interrupts
-    enable_interrupts();
+    // enable_interrupts();
 
-    int fd = fopen("0:/UwU.txt", "r");
-    if (fd)
+    struct process* process = 0;
+    int res = process_load("0:/blank.bin", &process);
+    if (res != HEHOS_ALL_OK)
     {
-        struct file_stat s;
-        fstat(fd, &s);
-        fclose(fd);
-
-        print_sussy_bakka();
+        panic("Failed to Load blank.bin!\n");
     }
+
+    print_sussy_bakka();
+    task_run_first_ever_task();
+    
     while(1);
 }

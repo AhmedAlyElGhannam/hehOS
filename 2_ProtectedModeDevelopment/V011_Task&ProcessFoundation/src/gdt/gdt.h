@@ -12,7 +12,7 @@ struct gdt
     uint8_t access;
     uint8_t high_flags;
     uint8_t base_24_31_bits;
-};
+}__attribute__((packed));
 
 // easier way to set gdt in C
 struct gdt_structured
