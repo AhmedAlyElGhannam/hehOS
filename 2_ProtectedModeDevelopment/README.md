@@ -552,3 +552,27 @@ Simply, it is a **raw flat array of thousands or millions of bytes** in the Heap
 1. When an interrupt is invoked while the cpu is in user land, the cpu will **push the same registers that were pushed to get into user land in the first place.** This way, getting back to user land is very easy: upon invoking `iret` at the end of the kernel interrupt routine, the kernel will go back to the user program just after the user program's interrupt instruction.
 1. In a **multi-tasking system**, user land registers will need to be salvaged when entering kernel land; which is important so that switching to the next process task may be possible. When switching back to the old task, **just swap the old registers of the task back to the reak CPU registers again** then **drop the cpu back into user land**: the task will continue executing as if nothing happened. **(can be done with timer interrupts)**
 
+# Communication With Kernel From a Process
+
+## Overview
+1. User program calls an interrupt using the interrupt instruction.
+1. Kernel interrupt routine is executed and extracts arguments pushed by the user program.
+1. Kernel interrupt routine returns the result and user program continues execution normally.
+
+## User Program Calling an Interrupt
+Assume there is a kernel operation that is represented by **code1**: it simply prints a message to the screen. Telling the kernel to print goes as follows:
+1. The user program begins by *setting the `eax` register to 1*: **this is the kernel code for print operations.**
+1. The user program then **pushes the address of the message** that should be printed to the screen.
+1. The user program *issues an interrupt* to the kernel: **the interrupt number used is `0x80`.** In this kernel implementation, **it was decided to use interrupt `0x80` for handling commands to kernel.**
+
+## Calling The Kernel -- Overview
+1. The cpu pushes the same information that was pushed to get into user land in the first place to the stack.
+1. Interrupt `0x80` kernel routine begins execution, the command number is extracted from the `eax` register.
+1. The C interrupt handler for `0x80` is called
+1. The tasj that executes the interrupt has its state saved, all registers for that task are saved in the tasks register structure. These are extracted from the interrupt frame.
+1. Execution flow is passed to the correct handler for the command number that was provided to the kernel in the `eax` register.
+1. Kernel does the action that it was instructed to do from the user land aka print to the screen.
+1. Kernel command handler returns a value.
+1. Execution continues after the user land's `int 0x80` instruction.
+1. The `eax` register is populated with the return result from the kernel.
+
