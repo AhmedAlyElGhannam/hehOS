@@ -3,33 +3,35 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define PIC_MASTER_ADD  0x20
-#define PIC_MASTER_ACK  0x20
-#define PIC_SLAVE_ADD   0xA0
+#define PIC_MASTER_ADDRESS      0x20
+#define PIC_MASTER_ACKNOWLEDGE  0x20
+#define PIC_SLAVE_ADDRESS       0xA0
 
-#define PIC_TIMER_INT    (PIC_MASTER_ADD + 0)
-#define PIC_KEYBRD_INT   (PIC_MASTER_ADD + 1)
-#define PIC_CASC_INT     (PIC_MASTER_ADD + 2)
-#define PIC_COM2_INT     (PIC_MASTER_ADD + 3)
-#define PIC_COM1_INT     (PIC_MASTER_ADD + 4)
-#define PIC_LPT2_INT     (PIC_MASTER_ADD + 5)
-#define PIC_FLPDISK_INT  (PIC_MASTER_ADD + 6)
-#define PIC_LPT1_INT     (PIC_MASTER_ADD + 7)
+#define ISR_TIMER_INT    (PIC_MASTER_ADDRESS + 0)
+#define ISR_KEYBRD_INT   (PIC_MASTER_ADDRESS + 1)
+#define ISR_CASC_INT     (PIC_MASTER_ADDRESS + 2)
+#define ISR_COM2_INT     (PIC_MASTER_ADDRESS + 3)
+#define ISR_COM1_INT     (PIC_MASTER_ADDRESS + 4)
+#define ISR_LPT2_INT     (PIC_MASTER_ADDRESS + 5)
+#define ISR_FLPDISK_INT  (PIC_MASTER_ADDRESS + 6)
+#define ISR_LPT1_INT     (PIC_MASTER_ADDRESS + 7)
 
-#define PIC_RTCLK_INT    (PIC_SLAVE_ADD + 0)
-#define PIC_PERIPH1_INT  (PIC_SLAVE_ADD + 1)
-#define PIC_PERIPH2_INT  (PIC_SLAVE_ADD + 2)
-#define PIC_PERIPH3_INT  (PIC_SLAVE_ADD + 3)
-#define PIC_MOUSEPS_INT  (PIC_SLAVE_ADD + 4)
-#define PIC_COPROC_INT   (PIC_SLAVE_ADD + 5)
-#define PIC_ATAPRIM_INT  (PIC_SLAVE_ADD + 6)
-#define PIC_ATASEC_INT   (PIC_SLAVE_ADD + 7)
+#define ISR_RTCLK_INT    (PIC_SLAVE_ADDRESS + 0)
+#define ISR_PERIPH1_INT  (PIC_SLAVE_ADDRESS + 1)
+#define ISR_PERIPH2_INT  (PIC_SLAVE_ADDRESS + 2)
+#define ISR_PERIPH3_INT  (PIC_SLAVE_ADDRESS + 3)
+#define ISR_MOUSEPS_INT  (PIC_SLAVE_ADDRESS + 4)
+#define ISR_COPROC_INT   (PIC_SLAVE_ADDRESS + 5)
+#define ISR_ATAPRIM_INT  (PIC_SLAVE_ADDRESS + 6)
+#define ISR_ATASEC_INT   (PIC_SLAVE_ADDRESS + 7)
 
 // forward declaration for this struct
 struct interrupt_frame;
 
 // defining ISR command function pointer type
 typedef void*(*ISR80H_COMMAND)(struct interrupt_frame* frame);
+
+typedef void(*INTERRUPT_CALLBACK_FUNCTION)(struct interrupt_frame* frame);
 
 // IDT descriptor data structure
 struct idt_desc
@@ -68,6 +70,7 @@ struct interrupt_frame
 void idt_init(void);
 void* isr80h_handler(int command, struct interrupt_frame* frame); 
 void isr80h_register_command(int command_id, ISR80H_COMMAND command);
+int idt_register_interrupt_callback(int interrupt, INTERRUPT_CALLBACK_FUNCTION int_callback);
 extern void enable_interrupts(void);
 extern void disable_interrupts(void);
 

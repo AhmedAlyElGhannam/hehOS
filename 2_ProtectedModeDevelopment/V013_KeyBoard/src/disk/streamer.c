@@ -3,6 +3,7 @@
 #include "disk.h"
 #include "../config.h"
 #include "../status.h"
+#include <stdbool.h>
 
 struct disk_stream* diskstreamer_new(int disk_id)
 {
@@ -29,7 +30,13 @@ int diskstreamer_read(struct disk_stream* stream, void* out, int total)
 {
     int sector = stream->pos / HEHOS_SECTOR_SIZE;
     int offset = stream->pos % HEHOS_SECTOR_SIZE;
+    int total_to_read = total;
+    bool overflow = (offset + total_to_read) >= HEHOS_SECTOR_SIZE;
     char buf[HEHOS_SECTOR_SIZE];
+    if (overflow)
+    {
+        total_to_read -= (offset + total_to_read) - HEHOS_SECTOR_SIZE;
+    }
 
     // read one sector into buffer
     int res = disk_read_block(stream->disk, sector, 1, buf);
@@ -38,9 +45,6 @@ int diskstreamer_read(struct disk_stream* stream, void* out, int total)
         goto out;
     }
 
-    // if bytes-to-read were more than or equal a sector then READ A SECTOR
-    // if bytes-to-read were less than a sector then just read them
-    int total_to_read = total > HEHOS_SECTOR_SIZE ? HEHOS_SECTOR_SIZE : total;
     for (int i = 0; i < total_to_read; i++)
     {
         *(char*)out++ = buf[offset+i];
@@ -49,10 +53,10 @@ int diskstreamer_read(struct disk_stream* stream, void* out, int total)
     // adjust the stream
     stream->pos += total_to_read;
     // if there is more to read
-    if (total > HEHOS_SECTOR_SIZE)
+    if (overflow)
     {
         // read the data in the next sector(s) via recursion *PANIIIIK*
-        res = diskstreamer_read(stream, out, total-HEHOS_SECTOR_SIZE);
+        res = diskstreamer_read(stream, out, total-total_to_read);
     }
 out:
     return res;

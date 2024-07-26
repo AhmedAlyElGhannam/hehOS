@@ -33,8 +33,11 @@ struct process
     } keyboard;
 };
 
-int process_load_for_slot(const char* filename, struct process** process, int process_slot);
+int process_switch(struct process* process);
+int process_load_switch(const char* filename, struct process** process);
 int process_load(const char* filename, struct process** process);
+int process_load_for_slot(const char* filename, struct process** process, int process_slot);
 struct process* process_current(void);
+struct process* process_get(int process_id);
 
 #endif

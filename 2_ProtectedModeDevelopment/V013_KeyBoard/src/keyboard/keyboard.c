@@ -68,6 +68,12 @@ void keyboard_push(char c)
         return;
     }
 
+    // if pushed character is null
+    if (c == 0x00)
+    {
+        return;
+    }
+
     int real_index = keyboard_get_tail_index(process);
     process->keyboard.buffer[real_index] = c;
     process->keyboard.tail_index += 1;
@@ -78,7 +84,7 @@ char keyboard_pop(void)
 {
     if (!task_current())
     {
-        return 0; // no task to pop from
+        return 0; // no task to pop from its buffer
     }
 
     struct process* process = task_current()->process;

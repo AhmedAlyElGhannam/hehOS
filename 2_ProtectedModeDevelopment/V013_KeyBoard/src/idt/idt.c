@@ -4,6 +4,7 @@
 #include "../memory/memory.h"
 #include "../io/io.h"
 #include "../task/task.h"
+#include "../status.h"
 
 struct idt_desc idt_descriptors[HEHOS_TOTAL_INTERRUPTS];
 struct idtr_desc idtr_descriptor;
@@ -11,6 +12,7 @@ struct idtr_desc idtr_descriptor;
 // this is implemented in asm to keep track of all the interrupts addresses
 extern void* interrupt_pointer_table[HEHOS_TOTAL_INTERRUPTS];
 static ISR80H_COMMAND isr80h_commands[HEHOS_MAX_ISR80H_COMMANDS];
+static INTERRUPT_CALLBACK_FUNCTION interrupt_callbacks[HEHOS_TOTAL_INTERRUPTS];
 
 extern void idt_load(struct idtr_desc* ptr);
 extern void int21h(void);
@@ -19,7 +21,15 @@ extern void* isr80h_wrapper();
 
 void interrupt_handler(int interrupt, struct interrupt_frame* frame)
 {
-    outb(PIC_MASTER_ADD, PIC_MASTER_ACK);
+    kernel_page();
+    if (interrupt_callbacks[interrupt] != 0)
+    {
+        task_current_save_state(frame);
+        interrupt_callbacks[interrupt](frame);
+    }
+
+    task_page();
+    outb(PIC_MASTER_ADDRESS, PIC_MASTER_ACKNOWLEDGE);
 }
 
 void no_interrupt_handler(void)
@@ -42,7 +52,7 @@ void idt_set(int interrupt_no, void* address)
     desc->offset_2 = (uint32_t) address >> 16;
 }
 
-void idt_init()
+void idt_init(void)
 {
     memset(idt_descriptors, 0, sizeof(idt_descriptors));
     idtr_descriptor.limit = sizeof(idt_descriptors) -1;
@@ -59,6 +69,20 @@ void idt_init()
 
     // load the interrupt descriptor table
     idt_load(&idtr_descriptor);
+}
+
+int idt_register_interrupt_callback(int interrupt, INTERRUPT_CALLBACK_FUNCTION int_callback)
+{
+    // if interrupt index is out of bounds
+    if (interrupt < 0 || interrupt >= HEHOS_TOTAL_INTERRUPTS)
+    {
+        return -EINVARG;
+    }
+
+    // assign callback function to the interrupt index
+    interrupt_callbacks[interrupt] = int_callback;
+
+    return 0;
 }
 
 // this function basically sets a new command to be handled when int 0x80 is raised

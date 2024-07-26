@@ -21,6 +21,7 @@ static void process_init(struct process* process)
 
 struct process* process_current(void)
 {
+    
     return current_process;
 }
 
@@ -32,6 +33,13 @@ struct process* process_get(int process_id)
     }
 
     return processes[process_id];
+}
+
+// this assumes all processes share the same video memory
+int process_switch(struct process* process)
+{
+    current_process = process;
+    return 0;
 }
 
 static int process_load_binary(const char* filename, struct process* process)
@@ -204,6 +212,17 @@ int process_get_free_slot(void)
     }
 
     return -EISTKN;
+}
+
+int process_load_switch(const char* filename, struct process** process)
+{
+    int res = process_load(filename, process);
+    if (res == 0)
+    {
+        process_switch(*process);
+    }
+
+    return res;
 }
 
 int process_load(const char* filename, struct process** process)

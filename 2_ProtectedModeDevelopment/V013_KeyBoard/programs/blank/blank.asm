@@ -13,12 +13,22 @@ global _start
 
 
 _start:
-    push message
-    mov eax, 1 ; for print command
+
+_loop:
+    call getkey
+    push eax
+    mov eax, 3 ; command 3 putchar
     int 0x80 ; raise interrupt 0x80
     add esp, 4 ; only one item was pushed into stack
+    jmp _loop ; keep looping to keep printing characters
 
-    jmp $
+getkey:
+    mov eax, 2 ; command 2 for getting key
+    int 0x80 ; raise interrupt 0x80
+    cmp eax, 0x00 
+    je getkey ; repeat if input char is null
+    ret
+
 
 section .data
 message: db 'HELLO KERNEL FROM THE USER SIIIIIIIDE!', 0

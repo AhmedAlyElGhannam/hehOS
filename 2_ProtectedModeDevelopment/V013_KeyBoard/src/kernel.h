@@ -31,6 +31,8 @@ void print(const char* str);
 void panic(const char* msg);
 void kernel_page(void);
 
+void terminal_writechar(char c, char colour);
+
 extern void kernel_registers(void);
 
 #define ERROR(value)    (void*)(value)
