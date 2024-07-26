@@ -2,14 +2,11 @@
 #include "../status.h"
 #include "../task/process.h"
 #include "../task/task.h"
+#include "classic.h"
 
 static struct keyboard* keyboard_list_head = 0;
 static struct keyboard* keyboard_list_last = 0;
 
-void keyboard_init(void)
-{
-
-}
 
 int keyboard_insert(struct keyboard* keyboard)
 {
@@ -38,6 +35,11 @@ int keyboard_insert(struct keyboard* keyboard)
 
 out:
     return res;
+}
+
+void keyboard_init(void)
+{
+    keyboard_insert(classic_init());
 }
 
 static int keyboard_get_tail_index(struct process* process)
