@@ -576,3 +576,56 @@ Assume there is a kernel operation that is represented by **code1**: it simply p
 1. Execution continues after the user land's `int 0x80` instruction.
 1. The `eax` register is populated with the return result from the kernel.
 
+# Keyboard Access in Protected Mode
+
+## Overview
+1. Keyboard access is interrupt-driven. (keyboard interrupt is accessed via int 0x21)
+1. Each process has its own keyboard buffer.
+1. Keyboard buffer can be pushed and popped from.
+1. Scan codes sent by the keyboard must be parsed.
+
+## Interrupt-Driven Keyboard Access
+1. Each time a key is pressed, a cpu interrupt is called: it causes the interrupt handler to run.
+1. PIC was mapped to 0x20, so the interrupt the keyboard uses is int 0x21.
+1. Scan code must be read and an interrupt acknowledgement must be issued to PIC.
+
+## Understanding The Keyboard Buffer
+1. Let the keyboard buffer be 1024 bytes in size.
+1. The 'head' variable equals 0: signifying that the head is at index 0.
+1. The 'tail' variable equals 0: signifying that the tail is at index 0.
+
+### Looking At The Buffer As It Is
+Both head and tail are 0s. Buffer does not contain any data.
+
+### Upon Pushing a Character 'A'
+1. 'A' is stored in buffer at the index stored in 'tail.
+1. 'tail' is incremented so that it indexes the next free location in buffer.
+1. 'head' still has index 0.
+
+### Upon Pushing a Character 'B'
+1. 'B' is stored in buffer position indexed by 'tail' aka index 1.
+1. 'tail' is incremented.
+1. 'head' remains as it is.
+
+### Upon Popping a Character From The Buffer
+1. 'A', the character indexed by 'head', is extracted and stored in an outside variable.
+1. 'head' is incremented so that it indexes the next filled location in buffer aka index 1.
+
+### Avoiding Buffer Overflow
+1. 'head' and 'tail' must be circular indices in order for them to not exceed the buffer width.
+1. When indexing the buffer, it will not be done directly using 'head' and 'tail'; it will be like this instead:
+
+```
+index = tail % buf_width;
+index = head % buf_width;
+```
+
+## Parsing Scan Codes
+The PIC does not say which key was pressed: it instead gives a scan code which must be parsed into an ASCII value. An array of characters can be used to assist with this operation.
+
+One thing to keep in mind is if lowercase letters must be differentiated from uppercase letters, the capslock must be watched constantly to know when it was in a down state and when it was not.
+
+## Virtual Keyboard Layer
+1. It gives the ability to create drivers for any type of keyboard and load as many as one desires.
+1. It is always a good thing to abstract everything out.
+
