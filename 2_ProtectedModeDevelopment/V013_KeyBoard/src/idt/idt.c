@@ -8,6 +8,8 @@
 struct idt_desc idt_descriptors[HEHOS_TOTAL_INTERRUPTS];
 struct idtr_desc idtr_descriptor;
 
+// this is implemented in asm to keep track of all the interrupts addresses
+extern void* interrupt_pointer_table[HEHOS_TOTAL_INTERRUPTS];
 static ISR80H_COMMAND isr80h_commands[HEHOS_MAX_ISR80H_COMMANDS];
 
 extern void idt_load(struct idtr_desc* ptr);
@@ -15,10 +17,9 @@ extern void int21h(void);
 extern void no_interrupt(void);
 extern void* isr80h_wrapper();
 
-void int21h_handler(void)
+void interrupt_handler(int interrupt, struct interrupt_frame* frame)
 {
-    print("Keyboard pressed!\n");
-    outb(0x20, 0x20);
+    outb(PIC_MASTER_ADD, PIC_MASTER_ACK);
 }
 
 void no_interrupt_handler(void)
@@ -49,11 +50,10 @@ void idt_init()
 
     for (int i = 0; i < HEHOS_TOTAL_INTERRUPTS; i++)
     {
-        idt_set(i, no_interrupt);
+        idt_set(i, interrupt_pointer_table[i]);
     }
 
     idt_set(0, idt_zero);
-    idt_set(0x21, int21h);
     idt_set(0x80, isr80h_wrapper);
 
 
