@@ -26,9 +26,12 @@ I made specific folders for my progress in the course---they can be distinguishe
 ## Future Work 
 1. Add more programs like the already-implemented echo.
 2. Implement multi-tasking.
-3. Add more eastereggs **wink wink**.
+3. Add more eastereggs like the one showcased down below **wink wink**.
 
 
 
-https://github.com/user-attachments/assets/8207655c-5868-4fe1-8dfd-89e263e1b111
+
+
+https://github.com/user-attachments/assets/342dcadd-1be2-4238-9a9b-0612ad89b147
+
 
