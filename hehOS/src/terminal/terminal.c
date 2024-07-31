@@ -1,0 +1,184 @@
+#include "terminal.h"
+#include "../string/string.h"
+
+uint16_t* video_mem = 0;
+uint16_t terminal_row = 0;
+uint16_t terminal_col = 0;
+
+uint16_t terminal_make_char(char c, char colour)
+{
+    return (colour << 8) | c;
+}
+
+void terminal_putchar(int x, int y, char c, char colour)
+{
+    video_mem[(y * VGA_WIDTH) + x] = terminal_make_char(c, colour);
+}
+
+void terminal_backspace(void)
+{
+    if (terminal_row == 0 && terminal_col == 0)
+    {
+        return; // cannot go back any further
+    }
+
+    if (terminal_col == 0)
+    {
+        terminal_row -= 1;
+        terminal_col = VGA_WIDTH;
+    }
+
+    // go to the previous col
+    terminal_col -= 1;
+    // overwrite the written char with a space
+    terminal_writechar(' ', VGA_COLOUR_WHITE);
+    // go back again to start writing
+    terminal_col -=1;
+}
+
+void terminal_writechar(char c, char colour)
+{
+    // new line
+    if (c == '\n')
+    {
+        terminal_row += 1;
+        terminal_col = 0;
+        return;
+    }
+
+    // tab
+    if (c == '\t')
+    {
+        terminal_col += 3;
+        if (terminal_col >= VGA_WIDTH)
+        {
+            terminal_col = 0;
+            terminal_row += 1;
+        }
+        return;
+    }
+
+    // backspace
+    if (c == 0x08)
+    {
+        terminal_backspace();
+        return;
+    }
+    
+    terminal_putchar(terminal_col, terminal_row, c, colour);
+    terminal_col += 1;
+
+    if (terminal_col >= VGA_WIDTH)
+    {
+        terminal_col = 0;
+        terminal_row += 1;
+    }
+}
+void terminal_initialize(void)
+{
+    video_mem = (uint16_t*)(0xB8000);
+
+    terminal_row = 0;
+    terminal_col = 0;
+
+    for (int y = 0; y < VGA_HEIGHT; y++)
+    {
+        for (int x = 0; x < VGA_WIDTH; x++)
+        {
+            terminal_putchar(x, y, ' ', 0);
+        }
+    }   
+}
+
+void print(const char* str)
+{
+    size_t len = strlen(str);
+
+    for (size_t i = 0; i < len; i++)
+    {
+        terminal_writechar(str[i], VGA_COLOUR_WHITE);
+    }
+}
+
+void print_with_colour(const char* str, char colour)
+{
+    size_t len = strlen(str);
+
+    for (size_t i = 0; i < len; i++)
+    {
+        terminal_writechar(str[i], colour);
+    }
+}
+
+// delete everything on terminal except for first 2 lines (hehOS version & path)
+void terminal_clear(void)
+{
+    for (int y = 2; y < VGA_HEIGHT; y++)
+    {
+        for (int x = 0; x < VGA_WIDTH; x++)
+        {
+            terminal_putchar(x, y, ' ', 0);
+        }
+    }
+
+    // redraw > sign and reposition cursor
+    terminal_col = 0;
+    terminal_row = 2;
+    print("> ");
+}
+
+void print_sussy_bakka(void)
+{
+    print("                    _______________");
+    print("\n");
+    print("                   /               \\");
+    print("\n");
+    print("                  /                 \\");
+    print("\n");
+    print("                 /     ");
+    print_with_colour("_________", VGA_COLOUR_LIGHTBLUE);
+    print("     \\");
+    print("\n");
+    print("                |");
+    print_with_colour("     /         \\     ", VGA_COLOUR_LIGHTBLUE);
+    print("\\");
+    print("\n");
+    print("               /     ");
+    print_with_colour("(           )", VGA_COLOUR_LIGHTBLUE);
+    print("    |");
+    print("\n");
+    print("               |      ");
+    print_with_colour("\\_________/", VGA_COLOUR_LIGHTBLUE);
+    print("     |");
+    print("\n");
+    print("              /                       \\");
+    print("\n");
+    print("              |                        |");
+    print("\n");
+    print("              |                        |");
+    print("\n");
+    print("             /                         |");
+    print("\n");
+    print("             |                         |");
+    print("\n");
+    print("             |                         |");
+    print("\n");
+    print("            /                          |");
+    print("\n");
+    print("            |                          |");
+    print("\n");
+    print("            |        ________          |");
+    print("\n");
+    print("      _____/        /        \\         |");
+    print("\n");
+    print("     /              |        |         |");
+    print("\n");
+    print("     |             /   _____/          |");
+    print("\n");
+    print("     \\____________/   /               _|");
+    print("\n");
+    print("                      \\            __/");
+    print("\n");
+    print("                       \\__________/");
+    print("\n");
+}
