@@ -13,6 +13,60 @@ I made specific folders for my progress in the course---they can be distinguishe
 4. Enter `make all` command to build hehOS from source.
 5. Enter `make launch` command to launch hehOS.
 
+## For Debugging Using qemu & GDB
+1. Launch `GDB`
+   ```
+   gdb
+   ```
+
+2. Add symbol file to debugging session (symbol file contains info that helps with debugging like function names) and start address
+   ```
+   add-symbol-file ./build/kernelfull.o 0x1000000
+   ```
+
+3. Tell `GDB` to connect to a remote target `qemu` for debugging the passed binary file `os.bin` along with debugging flags: `-hda` makes `qemu` use `os.bin` as a virtual hard disk to read from; `-S` tells `qemu` to start in a suspended state and not start executing unless stated by `GDB`; `-gdb stdio` enables `GDB`'s remote debugging support in `qemu` and directs `qemu` to use standard input/output (stdio) for communicating with `GDB`.
+   ```
+   target remote | qemu-system-i386 -hda ./bin/os.bin -S -gdb stdio
+   ```
+
+4. To place a breakpoint (since symbol file is added, gdb will recognize function names):
+   ```
+   break LABEL_NAME
+   ```
+
+5. To continue executing until breakpoint is reached:
+   ```
+   c
+   ```
+
+6. To print a variable's value (if it is a pointer for example):
+   ```
+   print *PTR_NAME
+   ```
+
+7. To single step in C code:
+   ```
+   n
+   ```
+
+8. To switch code layout from C to Assembly:
+   ```
+   layout asm
+   ```
+
+9. To single step in Assembly code:
+    ```
+    stepi
+    ```
+    ```
+    si
+    ```
+
+10. To switch code layout back to C:
+   ```
+   layout previous
+   ```
+
 ## Features
 1. Task and process management.
 2. A FAT16 filesystem.
